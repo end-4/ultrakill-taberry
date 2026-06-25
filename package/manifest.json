@@ -1,0 +1,12 @@
+{
+    "name": "Taberry",
+    "author": "end_4",
+    "version_number": "1.0.0",
+    "website_url": "https://github.com/end-4/ultrakill-taberry",
+    "description": "Compact & customizable tab menu",
+    "dependencies": [
+        "BepInEx-BepInExPack-5.4.2100",
+        "EternalsTeam-PluginConfigurator-1.10.2",
+        "end_4-NukeLib-0.1.0"
+    ]
+}
