@@ -27,6 +27,7 @@ internal static class CybergrindHandler {
     internal static GameObject CGStatsObject;
     internal static GameObject WaveProgress;
     internal static GameObject CGEnemies;
+    internal static GameObject TimeGroup;
     internal static GameObject TotalTime;
     internal static GameObject ThisWaveTime;
 
@@ -59,17 +60,19 @@ internal static class CybergrindHandler {
     internal static SortedSet<EnemyIconRecord> icons = [];
 
     static CybergrindHandler() {
-        ConfigManager.ShowEnemies.postValueChangeEvent += UpdateVisibilities;
         ConfigManager.ShowWave.postValueChangeEvent += UpdateVisibilities;
+        ConfigManager.ShowEnemies.postValueChangeEvent += UpdateVisibilities;
         ConfigManager.ShowTotalTime.postValueChangeEvent += UpdateVisibilities;
         ConfigManager.ShowWaveTime.postValueChangeEvent += UpdateVisibilities;
     }
 
     private static void UpdateVisibilities() {
         WaveProgress.SetActive(ConfigManager.ShowWave.value);
-        CGEnemies.SetActive(ConfigManager.ShowEnemies.value);
+        CGEnemies.SetActive(ConfigManager.ShowEnemies.value && icons.Any(icon => icon.IconObject.activeSelf));
         TotalTime.SetActive(ConfigManager.ShowTotalTime.value);
         ThisWaveTime.SetActive(ConfigManager.ShowWaveTime.value);
+        TimeGroup.SetActive(ConfigManager.ShowTotalTime.value || ConfigManager.ShowWaveTime.value);
+        CGStatsObject.SetActive(WaveProgress.activeSelf || CGEnemies.activeSelf || TimeGroup.activeSelf);
     }
 
     private static void UpdateVisibilities(bool _) {
@@ -78,21 +81,24 @@ internal static class CybergrindHandler {
 
     public static void Setup() {
         GameObject vanillaTabArea = UIUtils.FindRecursive("Canvas/Level Stats Controller");
-        GameObject vanillaTabPanel = UIUtils.FindRecursive(vanillaTabArea, "Level Stats (1)");
-        AssetBundle bundle = AssetBundle.LoadFromFile(Plugin.BundlePath);
-        if (CGStatsPrefab == null) CGStatsPrefab = bundle.LoadAsset<GameObject>("CGStats");
-        if (EnemyIconPrefab == null) EnemyIconPrefab = bundle.LoadAsset<GameObject>("CGEnemy");
-        bundle.Unload(false);
+        GameObject vanillaTabPanel = vanillaTabArea.FindRecursive("Level Stats (1)");
+        if (CGStatsPrefab == null || EnemyIconPrefab == null) {
+            AssetBundle bundle = AssetBundle.LoadFromFile(Plugin.BundlePath);
+            if (CGStatsPrefab == null) CGStatsPrefab = bundle.LoadAsset<GameObject>("CGStats");
+            if (EnemyIconPrefab == null) EnemyIconPrefab = bundle.LoadAsset<GameObject>("CGEnemy");
+            bundle.Unload(false);
+        }
 
         // Nuke vanilla panel
         Object.Destroy(vanillaTabPanel);
 
         // Add Taberry panel...
         CGStatsObject = Object.Instantiate(CGStatsPrefab, vanillaTabArea.transform);
-        WaveProgress = UIUtils.FindRecursive(CGStatsObject, "Wave");
-        CGEnemies = UIUtils.FindRecursive(CGStatsObject, "Enemies");
-        TotalTime = UIUtils.FindRecursive(CGStatsObject, "Time/Total");
-        ThisWaveTime = UIUtils.FindRecursive(CGStatsObject, "Time/ThisWave");
+        WaveProgress = CGStatsObject.FindRecursive("Wave");
+        CGEnemies = CGStatsObject.FindRecursive("Enemies");
+        TimeGroup = CGStatsObject.FindRecursive("Time");
+        TotalTime = TimeGroup.FindRecursive("Total");
+        ThisWaveTime = TimeGroup.FindRecursive("ThisWave");
 
         // ...and hook it to the Tab keybind
         Object.Destroy(vanillaTabArea.GetComponent<LevelStatsEnabler>());
@@ -105,6 +111,7 @@ internal static class CybergrindHandler {
     }
 
     public static void UnfuckEnemiesLayout() {
+        if (CGEnemies == null) return;
         LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)CybergrindHandler.CGEnemies.transform);
     }
 }
@@ -150,13 +157,16 @@ internal static class CybergrindPatches {
                 continue;
             }
 
-            icon.transform.Find("RadiantModifier").gameObject.SetActive(radiant);
-            icon.transform.Find("IdolModifier").gameObject.SetActive(eid.blessed);
-            icon.SetActive(!eid.dead);
+            icon.FindRecursive("RadiantModifier").gameObject.SetActive(radiant);
+            icon.FindRecursive("IdolModifier").gameObject.SetActive(eid.blessed);
+            icon.FindRecursive("Eliminated").SetActive(eid.dead);
+            icon.SetActive(!eid.dead || ConfigManager.DeadEnemyDisplayType.value ==
+                ConfigManager.DeadEnemyIconDisplayType.Cross);
             CybergrindHandler.UnfuckEnemiesLayout();
         }
 
-        CybergrindHandler.CGEnemies.SetActive(ConfigManager.ShowEnemies.value && CybergrindHandler.icons.Any(icon => icon.IconObject.activeSelf));
+        CybergrindHandler.CGEnemies.SetActive(ConfigManager.ShowEnemies.value &&
+                                              CybergrindHandler.icons.Any(icon => icon.IconObject.activeSelf));
 
         // Update time
         float seconds = sman.seconds;

@@ -6,7 +6,10 @@ using System.Reflection;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
+using NukeLib.UI;
 using Taberry.Cybergrind;
+using Taberry.NormalLevel;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Taberry;
@@ -44,8 +47,15 @@ public class Plugin : BaseUnityPlugin {
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode) {
+        GameObject tabPanelArea = UIUtils.FindRecursive("Canvas/Level Stats Controller/");
+        if (tabPanelArea != null) tabPanelArea.transform.localScale = ConfigManager.PanelScale.value * Vector3.one;
+        if (SceneHelper.CurrentScene == "Main Menu" || SceneHelper.CurrentScene == "uk_construct") return;
         if (SceneHelper.CurrentScene == "Endless") {
             CybergrindHandler.Setup();
+        } else {
+            var levelStatsController = UIUtils.FindRecursive("Canvas/Level Stats Controller");
+            if (levelStatsController == null || !levelStatsController.activeSelf) return;
+            NormalLevelHandler.Setup();
         }
     }
 }

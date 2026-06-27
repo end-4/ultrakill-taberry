@@ -3,10 +3,10 @@
     "author": "end_4",
     "version_number": "1.0.0",
     "website_url": "https://github.com/end-4/ultrakill-taberry",
-    "description": "Compact & customizable tab menu",
+    "description": "Compact + customizable + extra-fancy tab menu for both Cybergrind and normal levels",
     "dependencies": [
         "BepInEx-BepInExPack-5.4.2100",
         "EternalsTeam-PluginConfigurator-1.10.2",
-        "end_4-NukeLib-0.1.0"
+        "end_4-NukeLib-0.2.0"
     ]
 }
