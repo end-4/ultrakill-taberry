@@ -3,7 +3,7 @@
     "author": "end_4",
     "version_number": "1.0.0",
     "website_url": "https://github.com/end-4/ultrakill-taberry",
-    "description": "Compact + customizable + extra-fancy tab menu for both Cybergrind and normal levels",
+    "description": "Simply a better Tab menu. Includes rank requirements and CG enemy icons, shown in a compact manner.",
     "dependencies": [
         "BepInEx-BepInExPack-5.4.2100",
         "EternalsTeam-PluginConfigurator-1.10.2",

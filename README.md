@@ -10,6 +10,7 @@ Level stats | Cybergrind
 
 ## Notes
 - Incompatible with other mods that modify the Tab menu like CGEnemyIcons and BetterLevelStats. Though features enabled by default in them are also covered by Taberry.
+- Incompatible with some custom levels featuring heavy modifications
 
 ## Acknowledgement
 
