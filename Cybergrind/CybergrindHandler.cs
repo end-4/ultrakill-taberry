@@ -64,15 +64,17 @@ internal static class CybergrindHandler {
         ConfigManager.ShowEnemies.postValueChangeEvent += UpdateVisibilities;
         ConfigManager.ShowTotalTime.postValueChangeEvent += UpdateVisibilities;
         ConfigManager.ShowWaveTime.postValueChangeEvent += UpdateVisibilities;
+        ConfigManager.ShowCGDifficulty.postValueChangeEvent += UpdateVisibilities;
     }
 
     private static void UpdateVisibilities() {
-        WaveProgress.SetActive(ConfigManager.ShowWave.value);
-        CGEnemies.SetActive(ConfigManager.ShowEnemies.value && icons.Any(icon => icon.IconObject.activeSelf));
-        TotalTime.SetActive(ConfigManager.ShowTotalTime.value);
-        ThisWaveTime.SetActive(ConfigManager.ShowWaveTime.value);
-        TimeGroup.SetActive(ConfigManager.ShowTotalTime.value || ConfigManager.ShowWaveTime.value);
-        CGStatsObject.SetActive(WaveProgress.activeSelf || CGEnemies.activeSelf || TimeGroup.activeSelf);
+        WaveProgress?.SetActive(ConfigManager.ShowWave.value);
+        CGEnemies?.SetActive(ConfigManager.ShowEnemies.value && icons.Any(icon => icon.IconObject.activeSelf));
+        TotalTime?.SetActive(ConfigManager.ShowTotalTime.value);
+        ThisWaveTime?.SetActive(ConfigManager.ShowWaveTime.value);
+        TimeGroup?.SetActive(ConfigManager.ShowTotalTime.value || ConfigManager.ShowWaveTime.value);
+        CGStatsObject?.SetActive(WaveProgress.activeSelf || CGEnemies.activeSelf || TimeGroup.activeSelf);
+        CGStatsObject?.FindRecursive("Wave").GetComponent<WaveIndicatorController>()?.UpdateVisibilities();
     }
 
     private static void UpdateVisibilities(bool _) {

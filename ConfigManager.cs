@@ -28,6 +28,7 @@ public static class ConfigManager {
     public static BoolField ToggleAnimation;
 
     public static BoolField ShowLevelName;
+    public static BoolField ShowLevelDifficulty;
     public static BoolField ShowRankStats;
     public static BoolField ShowRequirements;
     public static EnumField<RequirementType> RequirementStyle;
@@ -35,6 +36,7 @@ public static class ConfigManager {
     public static BoolField ShowChallenge;
 
     public static BoolField ShowWave;
+    public static BoolField ShowCGDifficulty;
     public static BoolField ShowEnemies;
     public static BoolField ShowTotalTime;
     public static BoolField ShowWaveTime;
@@ -60,6 +62,7 @@ public static class ConfigManager {
 
         new ConfigHeader(config.rootPanel, "-- <color=#eb3b3b>NORMAL LEVELS</color> --", 24);
         ShowLevelName = new BoolField(config.rootPanel, "Show level name", "showLevelName", true);
+        ShowLevelDifficulty = new BoolField(config.rootPanel, "Show difficulty", "showLevelDifficulty", true);
         ShowRankStats = new BoolField(config.rootPanel, "Show rank stats", "showRankStats", true);
         ShowRequirements = new BoolField(config.rootPanel, "Show rank requirements", "showRequirements", true);
 
@@ -71,6 +74,7 @@ public static class ConfigManager {
         new ConfigHeader(config.rootPanel, "", 10);
         new ConfigHeader(config.rootPanel, "-- <color=#fbc94c>CYBER GRIND</color> --", 24);
         ShowWave = new BoolField(config.rootPanel, "Show wave", "showWave", true);
+        ShowCGDifficulty = new BoolField(config.rootPanel, "Show difficulty", "showCGDifficulty", true);
         ShowEnemies = new BoolField(config.rootPanel, "Show enemy icons", "showEnemies", true);
         ShowTotalTime = new BoolField(config.rootPanel, "Show total time", "showTotalTime", true);
         ShowWaveTime = new BoolField(config.rootPanel, "Show wave time", "showWaveTime", true);
