@@ -7,7 +7,7 @@ namespace Taberry.Cybergrind;
 
 public class WaveIndicatorController : MonoBehaviour {
     private TextMeshProUGUI WaveText;
-    private GameObject DifficultyTextObj;
+    private GameObject? DifficultyTextObj;
     private Image CircProgMask;
     private ActivateNextWave NextWaveObj;
 
@@ -20,7 +20,10 @@ public class WaveIndicatorController : MonoBehaviour {
         DifficultyTextObj = UIUtils.FindRecursive(this.gameObject, "WaveNumber/Difficulty");
         CircProgMask = UIUtils.FindRecursive(this.gameObject, "WaveCircularProgress").GetComponent<Image>();
         NextWaveObj = Object.FindObjectOfType<ActivateNextWave>();
-        DifficultyTextObj.GetComponent<TextMeshProUGUI>().text = DifficultyHelper.GetDifficultyName();
+        if (DifficultyTextObj != null) {
+            var comp = DifficultyTextObj.GetComponent<TextMeshProUGUI>();
+            if (comp != null) comp.text = DifficultyHelper.GetDifficultyName();
+        }
         UpdateVisibilities();
     }
 

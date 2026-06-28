@@ -12,13 +12,13 @@ using Object = UnityEngine.Object;
 namespace Taberry.NormalLevel;
 
 public class LevelScoresController : MonoBehaviour {
-    private GameObject TimeObj;
-    private GameObject KillsObj;
-    private GameObject StyleObj;
-    private Image CircProgMaskImage;
-    private Image CircProgBorderImage;
-    private TextMeshProUGUI ValueTextComp;
-    private TextMeshProUGUI RequirementTextComp;
+    private GameObject? TimeObj;
+    private GameObject? KillsObj;
+    private GameObject? StyleObj;
+    private Image? CircProgMaskImage;
+    private Image? CircProgBorderImage;
+    private TextMeshProUGUI? ValueTextComp;
+    private TextMeshProUGUI? RequirementTextComp;
     private static StatsManager sman => MonoSingleton<StatsManager>.Instance;
 
     private Color RankColor(string formattedRankText) {
@@ -50,21 +50,25 @@ public class LevelScoresController : MonoBehaviour {
     }
 
     internal void UpdateVisibilities() {
-        TimeObj.FindRecursive("RequirementText")
-            .SetActive(ConfigManager.ShowRequirements.value && !NormalLevelHandler.IsSecretLevel);
-        KillsObj.FindRecursive("RequirementText")
-            .SetActive(ConfigManager.ShowRequirements.value && !NormalLevelHandler.IsSecretLevel);
-        StyleObj.FindRecursive("RequirementText")
-            .SetActive(ConfigManager.ShowRequirements.value && !NormalLevelHandler.IsSecretLevel);
+        if (TimeObj != null)
+            TimeObj.FindRecursive("RequirementText")
+                .SetActive(ConfigManager.ShowRequirements.value && !NormalLevelHandler.IsSecretLevel);
+        if (KillsObj != null)
+            KillsObj.FindRecursive("RequirementText")
+                .SetActive(ConfigManager.ShowRequirements.value && !NormalLevelHandler.IsSecretLevel);
+        if (StyleObj != null)
+            StyleObj.FindRecursive("RequirementText")
+                .SetActive(ConfigManager.ShowRequirements.value && !NormalLevelHandler.IsSecretLevel);
+
         if (NormalLevelHandler.IsSecretLevel) {
-            TimeObj.FindRecursive("CircProg/CircProgMask").SetActive(false);
-            KillsObj.SetActive(false);
-            StyleObj.SetActive(false);
+            if (TimeObj != null) TimeObj.FindRecursive("CircProg/CircProgMask").SetActive(false);
+            if (KillsObj != null) KillsObj.SetActive(false);
+            if (StyleObj != null) StyleObj.SetActive(false);
         }
     }
 
     private void UpdateRank(GameObject targetObject, int[] ranks, float currentValue, bool reverse,
-        Func<float, string> valueToStringTransform = null) {
+        Func<float, string>? valueToStringTransform = null) {
         // Assign default transform
         if (valueToStringTransform == null) valueToStringTransform = (f) => f.ToString();
 
@@ -114,12 +118,18 @@ public class LevelScoresController : MonoBehaviour {
     }
 
     private void Update() {
-        // Plugin.Log.LogInfo($"Time ranks {StatsManager.Instance.timeRanks.Stringify()}");
-        // Plugin.Log.LogInfo($"Kill ranks {StatsManager.Instance.killRanks.Stringify()}");
-        // Plugin.Log.LogInfo($"Style ranks {StatsManager.Instance.styleRanks.Stringify()}");
-        UpdateRank(TimeObj, StatsManager.Instance.timeRanks, sman.seconds, true,
-            valueToStringTransform: FormatTime);
-        UpdateRank(KillsObj, StatsManager.Instance.killRanks, sman.kills, false);
-        UpdateRank(StyleObj, StatsManager.Instance.styleRanks, sman.stylePoints, false);
+        // Plugin.Log.LogInfo($"Time ranks {sman.timeRanks.Stringify()}");
+        // Plugin.Log.LogInfo($"Kill ranks {sman.killRanks.Stringify()}");
+        // Plugin.Log.LogInfo($"Style ranks {sman.styleRanks.Stringify()}");
+        if (TimeObj != null) {
+            UpdateRank(TimeObj, sman.timeRanks, sman.seconds, true,
+                valueToStringTransform: FormatTime);
+        }
+        if (KillsObj != null) {
+            UpdateRank(KillsObj, sman.killRanks, sman.kills, false);
+        }
+        if (StyleObj != null) {
+            UpdateRank(StyleObj, sman.styleRanks, sman.stylePoints, false);
+        }
     }
 }

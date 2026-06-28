@@ -24,12 +24,12 @@ internal static class CybergrindHandler {
     internal static GameObject CGStatsPrefab;
 
     //
-    internal static GameObject CGStatsObject;
-    internal static GameObject WaveProgress;
-    internal static GameObject CGEnemies;
-    internal static GameObject TimeGroup;
-    internal static GameObject TotalTime;
-    internal static GameObject ThisWaveTime;
+    internal static GameObject? CGStatsObject;
+    internal static GameObject? WaveProgress;
+    internal static GameObject? CGEnemies;
+    internal static GameObject? TimeGroup;
+    internal static GameObject? TotalTime;
+    internal static GameObject? ThisWaveTime;
 
     internal record struct EnemyIconRecord(
         EnemyIdentifier Enemy,
@@ -68,13 +68,25 @@ internal static class CybergrindHandler {
     }
 
     private static void UpdateVisibilities() {
-        WaveProgress?.SetActive(ConfigManager.ShowWave.value);
-        CGEnemies?.SetActive(ConfigManager.ShowEnemies.value && icons.Any(icon => icon.IconObject.activeSelf));
-        TotalTime?.SetActive(ConfigManager.ShowTotalTime.value);
-        ThisWaveTime?.SetActive(ConfigManager.ShowWaveTime.value);
-        TimeGroup?.SetActive(ConfigManager.ShowTotalTime.value || ConfigManager.ShowWaveTime.value);
-        CGStatsObject?.SetActive(WaveProgress.activeSelf || CGEnemies.activeSelf || TimeGroup.activeSelf);
-        CGStatsObject?.FindRecursive("Wave").GetComponent<WaveIndicatorController>()?.UpdateVisibilities();
+        if (WaveProgress != null) WaveProgress.SetActive(ConfigManager.ShowWave.value);
+        if (CGEnemies != null) CGEnemies.SetActive(
+            ConfigManager.ShowEnemies.value &&
+            icons != null && icons.Any(icon => (icon.IconObject != null && icon.IconObject.activeSelf))
+        );
+        if (TotalTime != null) TotalTime.SetActive(ConfigManager.ShowTotalTime.value);
+        if (ThisWaveTime != null) ThisWaveTime.SetActive(ConfigManager.ShowWaveTime.value);
+        if (TimeGroup != null) TimeGroup.SetActive(ConfigManager.ShowTotalTime.value || ConfigManager.ShowWaveTime.value);
+        if (CGStatsObject != null) CGStatsObject.SetActive(
+            (WaveProgress != null && WaveProgress.activeSelf) || 
+            (CGEnemies != null && CGEnemies.activeSelf) || 
+            (TimeGroup != null && TimeGroup.activeSelf)
+        );
+        if (CGStatsObject != null) {
+            GameObject wave = CGStatsObject.FindRecursive("Wave");
+            WaveIndicatorController comp = null;
+            if (wave != null) comp = wave.GetComponent<WaveIndicatorController>();
+            if (comp != null) comp.UpdateVisibilities();
+        }
     }
 
     private static void UpdateVisibilities(bool _) {
@@ -123,6 +135,11 @@ internal static class CybergrindPatches {
     private static StatsManager sman => MonoSingleton<StatsManager>.Instance;
     private static float lastSeconds;
 
+    [HarmonyPatch(typeof(EndlessGrid), "Start"), HarmonyPostfix]
+    private static void EndlessGrid_Start() {
+        CybergrindHandler.icons.Clear();
+    }
+
     [HarmonyPatch(typeof(EndlessGrid), "SpawnOnGrid"), HarmonyPostfix]
     private static void EndlessGrid_SpawnOnGrid(GameObject obj, bool radiant, GameObject __result,
         PrefabDatabase ___prefabs) {
@@ -130,9 +147,7 @@ internal static class CybergrindPatches {
 
         GameObject icon = Object.Instantiate(CybergrindHandler.EnemyIconPrefab, CybergrindHandler.CGEnemies.transform);
         UIUtils.FindRecursive(icon, "TypeIcon").AddComponent<EnemyIconController>().enemyIdentifier = eid;
-        if (radiant) {
-            UIUtils.FindRecursive(icon, "RadiantModifier").SetActive(true);
-        }
+        if (radiant) UIUtils.FindRecursive(icon, "RadiantModifier").SetActive(true);
 
         CybergrindHandler.EnemyCategory type = CybergrindHandler.EnemyCategory.Common;
         if (___prefabs.uncommonEnemies.Any(prefab => prefab.prefab == obj)) {
@@ -153,6 +168,10 @@ internal static class CybergrindPatches {
         // Update enemies
         foreach ((EnemyIdentifier eid, CybergrindHandler.EnemyCategory type, bool radiant, GameObject icon) in
                  CybergrindHandler.icons) {
+            if (icon == null) {
+                CybergrindHandler.icons.RemoveWhere(record => record.IconObject == null);
+                continue;
+            }
             if (!eid) {
                 icon.SetActive(false);
                 CybergrindHandler.UnfuckEnemiesLayout();
@@ -167,8 +186,8 @@ internal static class CybergrindPatches {
             CybergrindHandler.UnfuckEnemiesLayout();
         }
 
-        CybergrindHandler.CGEnemies.SetActive(ConfigManager.ShowEnemies.value &&
-                                              CybergrindHandler.icons.Any(icon => icon.IconObject.activeSelf));
+        if (CybergrindHandler.CGEnemies != null) CybergrindHandler.CGEnemies.SetActive(ConfigManager.ShowEnemies.value &&
+                                              CybergrindHandler.icons.Any(icon => (icon.IconObject != null && icon.IconObject.activeSelf)));
 
         // Update time
         float seconds = sman.seconds;
@@ -180,9 +199,13 @@ internal static class CybergrindPatches {
         seconds = seconds % 60f;
         secondsThisWave = secondsThisWave % 60f;
 
-        CybergrindHandler.TotalTime.GetComponent<TMP_Text>().text = minutes + ":" + seconds.ToString("00.000");
-        CybergrindHandler.ThisWaveTime.GetComponent<TMP_Text>().text =
-            "+ " + minutesThisWave + ":" + secondsThisWave.ToString("00.000");
+        if (CybergrindHandler.TotalTime != null) {
+            CybergrindHandler.TotalTime.GetComponent<TMP_Text>().text = minutes + ":" + seconds.ToString("00.000");
+        }
+        if (CybergrindHandler.ThisWaveTime != null) {
+            CybergrindHandler.ThisWaveTime.GetComponent<TMP_Text>().text =
+                "+ " + minutesThisWave + ":" + secondsThisWave.ToString("00.000");
+        }
     }
 
     [HarmonyPatch(typeof(EndlessGrid), "NextWave"), HarmonyPostfix]

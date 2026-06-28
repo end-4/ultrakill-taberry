@@ -31,6 +31,7 @@ public class LevelMiscController : MonoBehaviour {
 
     public void UpdateVisibilities() {
         GameObject SecretsObj = this.gameObject.FindRecursive("Secrets");
+        if (SecretsObj == null) return;
         this.gameObject.FindRecursive("Secrets/SecretIcon").SetActive(SecretOrbs.Count > 0);
         SecretsObj.SetActive(ConfigManager.ShowSecrets.value && SecretOrbs.Count > 0);
         this.gameObject.FindRecursive("padder").SetActive(!SecretsObj.activeSelf);
@@ -49,11 +50,11 @@ public class LevelMiscController : MonoBehaviour {
         if (MonoSingleton<ChallengeManager>.Instance != null &&
             MonoSingleton<ChallengeManager>.Instance.challengeDone &&
             !MonoSingleton<ChallengeManager>.Instance.challengeFailed) {
-            Challenge.SetActive(false);
-            ChallengeDone.SetActive(true && ConfigManager.ShowChallenge.value);
+            if (Challenge != null) Challenge.SetActive(false);
+            if (ChallengeDone != null) ChallengeDone.SetActive(true && ConfigManager.ShowChallenge.value);
         } else {
-            Challenge.SetActive(true && ConfigManager.ShowChallenge.value);
-            ChallengeDone.SetActive(false);
+            if (Challenge != null) Challenge.SetActive(true && ConfigManager.ShowChallenge.value);
+            if (ChallengeDone != null) ChallengeDone.SetActive(false);
         }
     }
 }

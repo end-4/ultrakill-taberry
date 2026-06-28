@@ -46,7 +46,10 @@ internal static class NormalLevelHandler {
             LevelMiscRow.GetComponent<LevelMiscController>().UpdateVisibilities();
         }
 
-        LevelStats.SetActive(ConfigManager.ShowLevelName.value || ConfigManager.ShowRankStats.value || ConfigManager.ShowSecrets.value || ConfigManager.ShowChallenge.value);
+        if (LevelStats != null) 
+            LevelStats.SetActive(ConfigManager.ShowLevelName.value || ConfigManager.ShowRankStats.value 
+            || ConfigManager.ShowSecrets.value || ConfigManager.ShowChallenge.value);
+        
     }
 
     public static void UnfuckLayouts() {

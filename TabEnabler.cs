@@ -10,32 +10,34 @@ public class TabEnabler : MonoBehaviour {
     public GameObject levelStats;
 
     private void Start() {
-        levelStats.SetActive(ConfigManager.ShowByDefault.value);
+        if (levelStats != null) {
+            levelStats.SetActive(ConfigManager.ShowByDefault.value);
+        }
     }
 
     private void Update() {
-        if (MonoSingleton<InputManager>.Instance.InputSource.Stats.WasPerformedThisFrame) {
-            if (levelStats != null) {
-                SlideFadeToggleEffect toggleEffect = levelStats.GetComponent<SlideFadeToggleEffect>();
-                if (toggleEffect == null && ConfigManager.ToggleAnimation.value) {
-                    toggleEffect = levelStats.AddComponent<SlideFadeToggleEffect>();
-                    toggleEffect.hiddenOffset = new Vector2(0, 30);
-                    toggleEffect.speed = 25;
-                    toggleEffect.OnExitComplete += () => {
-                        levelStats.SetActive(false);
-                    };
-                } else if (toggleEffect != null && !ConfigManager.ToggleAnimation.value) {
-                    Destroy(toggleEffect);
-                }
+        if (!MonoSingleton<InputManager>.Instance.InputSource.Stats.WasPerformedThisFrame || levelStats == null) {
+            return;
+        }
 
-                if (!levelStats.activeSelf) {
-                    levelStats.SetActive(true);
-                } else if (toggleEffect != null) {
-                    toggleEffect.StartExit();
-                } else {
-                    levelStats.SetActive(false);
-                }
-            }
+        SlideFadeToggleEffect toggleEffect = levelStats.GetComponent<SlideFadeToggleEffect>();
+        if (toggleEffect == null && ConfigManager.ToggleAnimation.value) {
+            toggleEffect = levelStats.AddComponent<SlideFadeToggleEffect>();
+            toggleEffect.hiddenOffset = new Vector2(0, 30);
+            toggleEffect.speed = 25;
+            toggleEffect.OnExitComplete += () => {
+                levelStats.SetActive(false);
+            };
+        } else if (toggleEffect != null && !ConfigManager.ToggleAnimation.value) {
+            Destroy(toggleEffect);
+        }
+
+        if (!levelStats.activeSelf) {
+            levelStats.SetActive(true);
+        } else if (toggleEffect != null) {
+            toggleEffect.StartExit();
+        } else {
+            levelStats.SetActive(false);
         }
     }
 }
