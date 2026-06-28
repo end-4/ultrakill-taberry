@@ -1,8 +1,8 @@
 ## Features
 
 - Clean and compact layout + has a scaling option
-- Shows rank requirements in a compact manner
-- Cybergrind enemy icons with clean, readable icons
+- Shows rank requirements
+- Shows simplified, readable Cybergrind enemy icons
 
 Level stats | Cybergrind
 ----------- | ----------
