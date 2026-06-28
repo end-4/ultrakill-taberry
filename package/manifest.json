@@ -1,7 +1,7 @@
 {
     "name": "Taberry",
     "author": "end_4",
-    "version_number": "1.0.0",
+    "version_number": "1.0.1",
     "website_url": "https://github.com/end-4/ultrakill-taberry",
     "description": "Simply a better Tab menu. Includes rank requirements and CG enemy icons, shown in a compact manner.",
     "dependencies": [
