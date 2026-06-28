@@ -12,7 +12,7 @@ public class WaveIndicatorController : MonoBehaviour {
     private ActivateNextWave NextWaveObj;
 
     internal void UpdateVisibilities() {
-        DifficultyTextObj.SetActive(ConfigManager.ShowCGDifficulty.value);
+        if (DifficultyTextObj != null) DifficultyTextObj.SetActive(ConfigManager.ShowCGDifficulty.value);
     }
 
     private void Start() {
