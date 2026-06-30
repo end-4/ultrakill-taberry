@@ -1,3 +1,7 @@
+## 1.1.0
+
+- Added support for lefty weapon position
+
 ## 1.0.1
 
 - Fixed compatibility issues with Cybergrind Music Explorer that prevents custom audio tracks and grants invincibility

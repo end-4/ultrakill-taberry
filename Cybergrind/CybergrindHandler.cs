@@ -77,8 +77,8 @@ internal static class CybergrindHandler {
         if (ThisWaveTime != null) ThisWaveTime.SetActive(ConfigManager.ShowWaveTime.value);
         if (TimeGroup != null) TimeGroup.SetActive(ConfigManager.ShowTotalTime.value || ConfigManager.ShowWaveTime.value);
         if (CGStatsObject != null) CGStatsObject.SetActive(
-            (WaveProgress != null && WaveProgress.activeSelf) || 
-            (CGEnemies != null && CGEnemies.activeSelf) || 
+            (WaveProgress != null && WaveProgress.activeSelf) ||
+            (CGEnemies != null && CGEnemies.activeSelf) ||
             (TimeGroup != null && TimeGroup.activeSelf)
         );
         if (CGStatsObject != null) {
@@ -120,7 +120,9 @@ internal static class CybergrindHandler {
         lse.levelStats = CGStatsObject;
 
         // Add controllers
-        UIUtils.FindRecursive(CGStatsObject, "Wave").AddComponent<WaveIndicatorController>();
+        CGStatsObject.FindRecursive("Wave").AddComponent<WaveIndicatorController>();
+        CGStatsObject.AddComponent<WeaponPosLayoutAdapter>();
+        CGStatsObject.FindRecursive("Enemies").AddComponent<WeaponPosLayoutAdapter>();
         UpdateVisibilities();
     }
 

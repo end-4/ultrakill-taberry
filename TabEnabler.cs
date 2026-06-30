@@ -1,5 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using NukeLib.UI;
+using Object = UnityEngine.Object;
 
 namespace Taberry;
 
@@ -11,8 +13,36 @@ public class TabEnabler : MonoBehaviour {
 
     private void Start() {
         if (levelStats != null) {
+            UpdateAnchors();
             levelStats.SetActive(ConfigManager.ShowByDefault.value);
         }
+    }
+
+    private void OnEnable() {
+        PrefsManager.onPrefChanged += OnPrefChanged;
+    }
+
+    private void OnDisable() {
+        PrefsManager.onPrefChanged -= OnPrefChanged;
+    }
+
+    private void OnPrefChanged(string key, object value) {
+        if (key == "weaponHoldPosition") UpdateAnchors();
+    }
+
+    private void UpdateAnchors() {
+        if (levelStats == null) return;
+        int weapos = MonoSingleton<PrefsManager>.Instance.GetInt("weaponHoldPosition");
+        // 0 = right, 1 = middle, 2 = left. HUD is on the side opposite to the weapon
+        RectTransform rt = ((RectTransform)levelStats.transform);
+        if (weapos == 2) {
+            rt.anchoredPosition = Vector2.one;
+            rt.pivot = Vector2.one;
+        } else {
+            rt.anchoredPosition = new Vector2(0, 1);
+            rt.pivot = new Vector2(0, 1);
+        }
+        rt.localPosition = Vector3.zero; // Make sure anchor changes get committed
     }
 
     private void Update() {
@@ -20,24 +50,6 @@ public class TabEnabler : MonoBehaviour {
             return;
         }
 
-        SlideFadeToggleEffect toggleEffect = levelStats.GetComponent<SlideFadeToggleEffect>();
-        if (toggleEffect == null && ConfigManager.ToggleAnimation.value) {
-            toggleEffect = levelStats.AddComponent<SlideFadeToggleEffect>();
-            toggleEffect.hiddenOffset = new Vector2(0, 30);
-            toggleEffect.speed = 25;
-            toggleEffect.OnExitComplete += () => {
-                levelStats.SetActive(false);
-            };
-        } else if (toggleEffect != null && !ConfigManager.ToggleAnimation.value) {
-            Destroy(toggleEffect);
-        }
-
-        if (!levelStats.activeSelf) {
-            levelStats.SetActive(true);
-        } else if (toggleEffect != null) {
-            toggleEffect.StartExit();
-        } else {
-            levelStats.SetActive(false);
-        }
+        levelStats.SetActiveAnimated(!levelStats.activeSelf, hiddenOffset: new Vector2(0, 30), speed: 25);
     }
 }
