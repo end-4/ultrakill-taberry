@@ -140,6 +140,7 @@ internal static class CybergrindPatches {
     [HarmonyPatch(typeof(EndlessGrid), "Start"), HarmonyPostfix]
     private static void EndlessGrid_Start() {
         CybergrindHandler.icons.Clear();
+        lastSeconds = sman.seconds;
     }
 
     [HarmonyPatch(typeof(EndlessGrid), "SpawnOnGrid"), HarmonyPostfix]

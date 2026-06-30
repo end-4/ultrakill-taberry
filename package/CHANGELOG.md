@@ -1,6 +1,7 @@
 ## 1.1.0
 
 - Added support for lefty weapon position
+- Fixed the wave timer showing negative time on cybergrind restart
 
 ## 1.0.1
 
