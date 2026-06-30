@@ -11,8 +11,13 @@
 <img alt="image" src="https://github.com/user-attachments/assets/48339ec8-dc7c-4a17-b230-8de409b9b406" />
 
 ## Notes
-- Incompatible with other mods that modify the Tab menu like CGEnemyIcons and BetterLevelStats. Though features enabled by default in them are also covered by Taberry.
+- Incompatible with other mods that modify the Tab menu like CGEnemyIcons and BetterLevelStats
 - Incompatible with some custom levels featuring heavy modifications
+
+## Feedback is welcome
+
+- Please feel free to ping @end_4 in the New Blood discord server if you encounter any issues.
+  - Or even better, report on GitHub if you're a nerd.
 
 ## Acknowledgement
 
