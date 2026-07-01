@@ -29,7 +29,9 @@ public class WaveIndicatorController : MonoBehaviour {
 
 
     private void Update() {
-        WaveText.text = MonoSingleton<EndlessGrid>.Instance.currentWave.ToString();
+        string newText = MonoSingleton<EndlessGrid>.Instance.currentWave.ToString();
+        WaveText.text = newText;
+        WaveText.fontSize = newText.Length > 2 ? 20 : 24;
         float percentage = (float)NextWaveObj.deadEnemies / (float)MonoSingleton<EndlessGrid>.Instance.enemyAmount;
         CircProgMask.fillAmount = percentage;
     }
