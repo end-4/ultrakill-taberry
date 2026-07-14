@@ -30,12 +30,12 @@ internal static class CybergrindHandler {
     internal static GameObject? TotalTime;
     internal static GameObject? ThisWaveTime;
 
-    
+
     internal static TextMeshProUGUI? TotalTimeTextComp;
     internal static TextMeshProUGUI? ThisWaveTimeTextComp;
     internal static WaveIndicatorController? WaveIndicatorComp;
 
-    
+
     private static bool? lastWaveVisible;
     private static bool? lastEnemiesVisible;
     private static bool? lastTotalTimeVisible;
@@ -163,7 +163,7 @@ internal static class CybergrindHandler {
 
         // Add Taberry panel...
         CGStatsObject = Object.Instantiate(CGStatsPrefab, vanillaTabArea.transform);
-        
+
         var waveObj = CGStatsObject.FindRecursive("Wave");
         WaveProgress = waveObj;
         CGEnemies = CGStatsObject.FindRecursive("Enemies");
@@ -211,7 +211,10 @@ internal static class CybergrindPatches {
         if (__result?.GetComponentInChildren<EnemyIdentifier>(true) is not { } eid) return;
 
         GameObject icon = Object.Instantiate(CybergrindHandler.EnemyIconPrefab, CybergrindHandler.CGEnemies.transform);
-        UIUtils.FindRecursive(icon, "TypeIcon").AddComponent<EnemyIconController>().enemyIdentifier = eid;
+        var eic = UIUtils.FindRecursive(icon, "TypeIcon").AddComponent<EnemyIconController>();
+        eic.enemyIdentifier = eid;
+        eic.style = ConfigManager.IconStyle.value;
+
 
         CybergrindHandler.EnemyCategory type = CybergrindHandler.EnemyCategory.Common;
         if (___prefabs.uncommonEnemies.Any(prefab => prefab.prefab == obj)) {
@@ -223,7 +226,7 @@ internal static class CybergrindPatches {
         }
 
         var record = new CybergrindHandler.EnemyIconRecord(eid, type, radiant, icon);
-        
+
         if (radiant && record.RadiantModifier != null) record.RadiantModifier.SetActive(true);
         if (record.IdolModifier != null) record.IdolModifier.SetActive(eid.blessed);
         record.LastBlessedState = eid.blessed;
@@ -324,7 +327,7 @@ internal static class CybergrindPatches {
         CybergrindHandler.icons.Clear();
         lastSeconds = sman.seconds;
         CybergrindHandler.UnfuckEnemiesLayout();
-        CybergrindHandler.UpdateVisibilities();        
+        CybergrindHandler.UpdateVisibilities();
     }
 }
 

@@ -26,7 +26,7 @@ public class Plugin : BaseUnityPlugin {
     public static string workingDir = Path.GetDirectoryName(workingPath);
     public const string PluginGUID = "com.github.end-4.taberry";
     public const string PluginName = "Taberry";
-    public const string PluginVersion = "1.0.1";
+    public const string PluginVersion = "1.1.0";
 
     // Assets
     internal static readonly string BundlePath = Path.Combine(workingDir, "assets", "taberry.bundle");

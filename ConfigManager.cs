@@ -38,6 +38,7 @@ public static class ConfigManager {
     public static BoolField ShowWave;
     public static BoolField ShowCGDifficulty;
     public static BoolField ShowEnemies;
+    public static EnumField<EnemyIconController.IconStyle> IconStyle;
     public static BoolField ShowTotalTime;
     public static BoolField ShowWaveTime;
     public static EnumField<DeadEnemyIconDisplayType> DeadEnemyDisplayType;
@@ -76,6 +77,8 @@ public static class ConfigManager {
         ShowWave = new BoolField(config.rootPanel, "Show wave", "showWave", true);
         ShowCGDifficulty = new BoolField(config.rootPanel, "Show difficulty", "showCGDifficulty", true);
         ShowEnemies = new BoolField(config.rootPanel, "Show enemy icons", "showEnemies", true);
+        IconStyle = new EnumField<EnemyIconController.IconStyle>(config.rootPanel, "Icon style", "cgIconStyle",
+            EnemyIconController.IconStyle.Simple);
         ShowTotalTime = new BoolField(config.rootPanel, "Show total time", "showTotalTime", true);
         ShowWaveTime = new BoolField(config.rootPanel, "Show wave time", "showWaveTime", true);
         DeadEnemyDisplayType = new EnumField<DeadEnemyIconDisplayType>(config.rootPanel, "Dead enemy display type",
