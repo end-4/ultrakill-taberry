@@ -1,5 +1,6 @@
 ## 1.1.0
 
+- Optimized UI updates to avoid frame drops on higher CG waves
 - Added support for lefty weapon position
 - Fixed the wave timer showing negative time on cybergrind restart
 

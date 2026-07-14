@@ -12,13 +12,29 @@ using Object = UnityEngine.Object;
 namespace Taberry.NormalLevel;
 
 public class LevelScoresController : MonoBehaviour {
+    private class ScoreComponentCache {
+        public GameObject Root;
+        public Image CircProgMaskImage;
+        public Image CircProgBorderImage;
+        public TextMeshProUGUI ValueTextComp;
+        public TextMeshProUGUI RequirementTextComp;
+        
+        public float LastValue = -1f;
+        public Color LastBorderColor = Color.clear;
+        public string LastValueText = string.Empty;
+        public string LastRequirementText = string.Empty;
+        public float LastFillAmount = -1f;
+        public ConfigManager.RequirementType LastReqStyle = (ConfigManager.RequirementType)(-1);
+    }
+
     private GameObject? TimeObj;
     private GameObject? KillsObj;
     private GameObject? StyleObj;
-    private Image? CircProgMaskImage;
-    private Image? CircProgBorderImage;
-    private TextMeshProUGUI? ValueTextComp;
-    private TextMeshProUGUI? RequirementTextComp;
+
+    private ScoreComponentCache? timeCache;
+    private ScoreComponentCache? killsCache;
+    private ScoreComponentCache? styleCache;
+
     private static StatsManager sman => MonoSingleton<StatsManager>.Instance;
 
     private Color RankColor(string formattedRankText) {
@@ -33,7 +49,7 @@ public class LevelScoresController : MonoBehaviour {
     }
 
     private string FormatTime(float seconds) {
-        float displayMinutes = (int)seconds / 60;
+        int displayMinutes = (int)seconds / 60;
         float displaySeconds = seconds % 60f;
         return $"{displayMinutes}:{displaySeconds.ToString("00.000")}";
     }
@@ -42,6 +58,20 @@ public class LevelScoresController : MonoBehaviour {
         TimeObj = this.gameObject.FindRecursive("Time");
         KillsObj = this.gameObject.FindRecursive("Kills");
         StyleObj = this.gameObject.FindRecursive("Style");
+
+        if (TimeObj != null) timeCache = CreateCache(TimeObj);
+        if (KillsObj != null) killsCache = CreateCache(KillsObj);
+        if (StyleObj != null) styleCache = CreateCache(StyleObj);
+    }
+
+    private ScoreComponentCache CreateCache(GameObject target) {
+        return new ScoreComponentCache {
+            Root = target,
+            CircProgMaskImage = target.FindRecursive("CircProg/CircProgMask").GetComponent<Image>(),
+            CircProgBorderImage = target.FindRecursive("CircProg/CircProgMask/CircProgBorder").GetComponent<Image>(),
+            ValueTextComp = target.FindRecursive("ValueText").GetComponent<TextMeshProUGUI>(),
+            RequirementTextComp = target.FindRecursive("RequirementText").GetComponent<TextMeshProUGUI>()
+        };
     }
 
     private void Start() {
@@ -67,69 +97,78 @@ public class LevelScoresController : MonoBehaviour {
         }
     }
 
-    private void UpdateRank(GameObject targetObject, int[] ranks, float currentValue, bool reverse,
+    private void UpdateRank(ScoreComponentCache cache, int[] ranks, float currentValue, bool reverse,
         Func<float, string>? valueToStringTransform = null) {
-        // Assign default transform
+        
         if (valueToStringTransform == null) valueToStringTransform = (f) => f.ToString();
-
-        // Get target objects
-        CircProgMaskImage = targetObject.FindRecursive("CircProg/CircProgMask").GetComponent<Image>();
-        CircProgBorderImage =
-            targetObject.FindRecursive("CircProg/CircProgMask/CircProgBorder").GetComponent<Image>();
-        ValueTextComp = targetObject.FindRecursive("ValueText").GetComponent<TextMeshProUGUI>();
-        RequirementTextComp =
-            targetObject.FindRecursive("RequirementText").GetComponent<TextMeshProUGUI>();
 
         // Current value text update
         string currentValueString = valueToStringTransform(currentValue);
-        ValueTextComp.text = currentValueString;
+        if (cache.LastValueText != currentValueString) {
+            cache.ValueTextComp.text = currentValueString;
+            cache.LastValueText = currentValueString;
+        }
 
         // Circ prog update
         float maxValue = reverse ? ranks[0] : ranks[^1];
-        float percentage = currentValue / maxValue;
-        if (reverse) percentage = 1 - percentage;
-        CircProgMaskImage.fillAmount = percentage;
+        float percentage = maxValue != 0 ? (currentValue / maxValue) : 0f;
+        if (reverse) percentage = 1f - percentage;
+        percentage = Mathf.Clamp01(percentage);
+
+        if (!Mathf.Approximately(cache.LastFillAmount, percentage)) {
+            cache.CircProgMaskImage.fillAmount = percentage;
+            cache.LastFillAmount = percentage;
+        }
 
         // Current rank color update
         int currentRank = SingularRankHelper.GetRank(ranks, currentValue, reverse);
         string hexRankColor = SingularRankHelper.GetRankForegroundColor(currentRank);
         ColorUtility.TryParseHtmlString(hexRankColor, out Color colorRankColor);
-        CircProgBorderImage.color = colorRankColor;
-
-        // Requirement text update
-        int requirementRank = currentRank;
-        switch (ConfigManager.RequirementStyle.value) {
-            case ConfigManager.RequirementType.Next:
-                requirementRank = SingularRankHelper.ClampRank(currentRank + (reverse ? 0 : +1), ranks);
-                break;
-            case ConfigManager.RequirementType.SRank:
-                requirementRank = ranks.Length;
-                break;
+        
+        if (cache.LastBorderColor != colorRankColor) {
+            cache.CircProgBorderImage.color = colorRankColor;
+            cache.LastBorderColor = colorRankColor;
         }
 
-        int requirementIndex = Math.Min(requirementRank - 1, ranks.Length - 1);
-        float requirementValue = ranks[requirementIndex];
-        string hexRequirementColor = SingularRankHelper.GetRankForegroundColor(requirementRank);
-        string requirementValueString = valueToStringTransform(requirementValue);
-        RequirementTextComp.text =
-            $"<color=grey>/</color><color={hexRequirementColor}>{requirementValueString}</color>";
+        // Requirement text update
+        var currentReqStyle = ConfigManager.RequirementStyle.value;
+        if (!Mathf.Approximately(cache.LastValue, currentValue) || cache.LastReqStyle != currentReqStyle) {
+            int requirementRank = currentRank;
+            switch (currentReqStyle) {
+                case ConfigManager.RequirementType.Next:
+                    requirementRank = SingularRankHelper.ClampRank(currentRank + (reverse ? 0 : +1), ranks);
+                    break;
+                case ConfigManager.RequirementType.SRank:
+                    requirementRank = ranks.Length;
+                    break;
+            }
 
-        // Plugin.Log.LogInfo($"Current rank {currentRank}, requirement rank {requirementRank}, requirement at index {requirementIndex}");
+            int requirementIndex = Math.Min(requirementRank - 1, ranks.Length - 1);
+            float requirementValue = ranks[requirementIndex];
+            string hexRequirementColor = SingularRankHelper.GetRankForegroundColor(requirementRank);
+            string requirementValueString = valueToStringTransform(requirementValue);
+            
+            string requirementText = $"<color=grey>/</color><color={hexRequirementColor}>{requirementValueString}</color>";
+            if (cache.LastRequirementText != requirementText) {
+                cache.RequirementTextComp.text = requirementText;
+                cache.LastRequirementText = requirementText;
+            }
+            
+            cache.LastReqStyle = currentReqStyle;
+        }
+
+        cache.LastValue = currentValue;
     }
 
     private void Update() {
-        // Plugin.Log.LogInfo($"Time ranks {sman.timeRanks.Stringify()}");
-        // Plugin.Log.LogInfo($"Kill ranks {sman.killRanks.Stringify()}");
-        // Plugin.Log.LogInfo($"Style ranks {sman.styleRanks.Stringify()}");
-        if (TimeObj != null) {
-            UpdateRank(TimeObj, sman.timeRanks, sman.seconds, true,
-                valueToStringTransform: FormatTime);
+        if (timeCache != null && TimeObj != null && TimeObj.activeSelf) {
+            UpdateRank(timeCache, sman.timeRanks, sman.seconds, true, valueToStringTransform: FormatTime);
         }
-        if (KillsObj != null) {
-            UpdateRank(KillsObj, sman.killRanks, sman.kills, false);
+        if (killsCache != null && KillsObj != null && KillsObj.activeSelf) {
+            UpdateRank(killsCache, sman.killRanks, sman.kills, false);
         }
-        if (StyleObj != null) {
-            UpdateRank(StyleObj, sman.styleRanks, sman.stylePoints, false);
+        if (styleCache != null && StyleObj != null && StyleObj.activeSelf) {
+            UpdateRank(styleCache, sman.styleRanks, sman.stylePoints, false);
         }
     }
 }

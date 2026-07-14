@@ -11,6 +11,12 @@ public class LevelMiscController : MonoBehaviour {
     private GameObject Challenge;
     private GameObject ChallengeDone;
     private List<GameObject> SecretOrbs = new List<GameObject>();
+    private List<GameObject> SecretOrbDoneMarks = new List<GameObject>();
+    private HashSet<int> ActivatedSecretOrbs = new HashSet<int>();
+    
+    private bool? lastChallengeActiveState = null;
+    private bool? lastChallengeDoneActiveState = null;
+
     private static StatsManager sman => MonoSingleton<StatsManager>.Instance;
 
     private void Awake() {
@@ -23,6 +29,8 @@ public class LevelMiscController : MonoBehaviour {
         for (int i = 0; i < sman.secretObjects.Length; i++) {
             var newOrb = Instantiate(NormalLevelHandler.SecretPrefab, SecretsGroup.transform);
             SecretOrbs.Add(newOrb);
+            var doneMark = newOrb.FindRecursive("DoneMark");
+            SecretOrbDoneMarks.Add(doneMark);
         }
 
         UpdateVisibilities();
@@ -39,22 +47,41 @@ public class LevelMiscController : MonoBehaviour {
 
     private void Update() {
         foreach (var secretNumber in sman.prevSecrets) {
-            SecretOrbs[secretNumber].FindRecursive("DoneMark").SetActive(true);
+            if (ActivatedSecretOrbs.Add(secretNumber)) {
+                if (secretNumber < SecretOrbDoneMarks.Count && SecretOrbDoneMarks[secretNumber] != null) {
+                    SecretOrbDoneMarks[secretNumber].SetActive(true);
+                }
+            }
         }
 
         foreach (var secretNumber in sman.newSecrets) {
-            SecretOrbs[secretNumber].FindRecursive("DoneMark").SetActive(true);
+            if (ActivatedSecretOrbs.Add(secretNumber)) {
+                if (secretNumber < SecretOrbDoneMarks.Count && SecretOrbDoneMarks[secretNumber] != null) {
+                    SecretOrbDoneMarks[secretNumber].SetActive(true);
+                }
+            }
         }
 
+        bool targetChallengeActive = false;
+        bool targetChallengeDoneActive = false;
 
-        if (MonoSingleton<ChallengeManager>.Instance != null &&
-            MonoSingleton<ChallengeManager>.Instance.challengeDone &&
-            !MonoSingleton<ChallengeManager>.Instance.challengeFailed) {
-            if (Challenge != null) Challenge.SetActive(false);
-            if (ChallengeDone != null) ChallengeDone.SetActive(true && ConfigManager.ShowChallenge.value);
+        var challengeMgr = MonoSingleton<ChallengeManager>.Instance;
+        if (challengeMgr != null && challengeMgr.challengeDone && !challengeMgr.challengeFailed) {
+            targetChallengeActive = false;
+            targetChallengeDoneActive = ConfigManager.ShowChallenge.value;
         } else {
-            if (Challenge != null) Challenge.SetActive(true && ConfigManager.ShowChallenge.value);
-            if (ChallengeDone != null) ChallengeDone.SetActive(false);
+            targetChallengeActive = ConfigManager.ShowChallenge.value;
+            targetChallengeDoneActive = false;
+        }
+
+        if (Challenge != null && (!lastChallengeActiveState.HasValue || lastChallengeActiveState.Value != targetChallengeActive)) {
+            Challenge.SetActive(targetChallengeActive);
+            lastChallengeActiveState = targetChallengeActive;
+        }
+
+        if (ChallengeDone != null && (!lastChallengeDoneActiveState.HasValue || lastChallengeDoneActiveState.Value != targetChallengeDoneActive)) {
+            ChallengeDone.SetActive(targetChallengeDoneActive);
+            lastChallengeDoneActiveState = targetChallengeDoneActive;
         }
     }
 }

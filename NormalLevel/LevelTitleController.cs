@@ -9,31 +9,56 @@ public class LevelTitleController : MonoBehaviour {
     private GameObject SmallText;
     private GameObject BigText;
 
+    private TextMeshProUGUI? smallTextComp;
+    private TextMeshProUGUI? bigTextComp;
+
+    private string lastSmallText = string.Empty;
+    private string lastBigText = string.Empty;
+
     internal void UpdateTitle() {
-        string title = "";
+        if (smallTextComp == null || bigTextComp == null) return;
+
         MapInfo mapInfo = MapInfo.Instance;
         StockMapInfo stockMapInfo = StockMapInfo.Instance;
-        title = mapInfo?.levelName ?? stockMapInfo?.assets.LargeText ?? SceneHelper.CurrentScene ?? "???";
-        string smallString = "";
-        string bigString = "";
-        if (title.Contains(":")) {
-            var parts = title.Split(':');
-            smallString = parts[0].Trim();
-            bigString = parts[1].Trim();
+        string title = mapInfo?.levelName ?? stockMapInfo?.assets.LargeText ?? SceneHelper.CurrentScene ?? "???";
+        
+        string smallString;
+        string bigString;
+
+        int colonIndex = title.IndexOf(':');
+        if (colonIndex != -1) {
+            ReadOnlySpan<char> titleSpan = title.AsSpan();
+            smallString = titleSpan.Slice(0, colonIndex).Trim().ToString();
+            bigString = titleSpan.Slice(colonIndex + 1).Trim().ToString();
         } else {
             smallString = SceneHelper.IsPlayingCustom ? "Custom level" : "Campaign";
-            bigString = title.Length > 0 ? title : SceneHelper.CurrentScene;
+            bigString = title.Length > 0 ? title : (SceneHelper.CurrentScene ?? string.Empty);
         }
 
+        string targetSmallText;
         if (ConfigManager.ShowLevelDifficulty.value) {
-            SmallText.GetComponent<TextMeshProUGUI>().text =
-                $"{DifficultyHelper.GetDifficultyName()} > {smallString}";
+            targetSmallText = $"{DifficultyHelper.GetDifficultyName()} > {smallString}";
         } else {
-            SmallText.GetComponent<TextMeshProUGUI>().text = smallString;
+            targetSmallText = smallString;
         }
-        BigText.GetComponent<TextMeshProUGUI>().text = bigString;
 
-        NormalLevelHandler.UnfuckLayouts();
+        bool hasChanged = false;
+
+        if (lastSmallText != targetSmallText) {
+            smallTextComp.text = targetSmallText;
+            lastSmallText = targetSmallText;
+            hasChanged = true;
+        }
+
+        if (lastBigText != bigString) {
+            bigTextComp.text = bigString;
+            lastBigText = bigString;
+            hasChanged = true;
+        }
+
+        if (hasChanged) {
+            NormalLevelHandler.UnfuckLayouts();
+        }
     }
 
     internal void UpdateTitle(bool _) {
@@ -43,6 +68,10 @@ public class LevelTitleController : MonoBehaviour {
     private void Awake() {
         SmallText = this.gameObject.FindRecursive("LevelInfoRow/Small");
         BigText = this.gameObject.FindRecursive("Main");
+
+        if (SmallText != null) smallTextComp = SmallText.GetComponent<TextMeshProUGUI>();
+        if (BigText != null) bigTextComp = BigText.GetComponent<TextMeshProUGUI>();
+
         ConfigManager.ShowLevelDifficulty.postValueChangeEvent += UpdateTitle;
     }
 
